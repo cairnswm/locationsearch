@@ -1,0 +1,50 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    name: Build and publish package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to GitHub Packages (npm)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GitHub Packages (npm) expects a scoped package name and an npm auth token.
+          # Make sure your package.json has:
+          #   "name": "@<OWNER>/LocationSearch"
+          #   "private": false
+          # or set publishConfig.registry to https://npm.pkg.github.com/
+
+          # Ensure package.json is scoped to the repository owner so GitHub Packages accepts the publish.
+          # This will update package.json in the workspace during the workflow.
+          echo "Setting package.json name scope to @cairnswm and private=false"
+          npm pkg set name=@cairnswm/LocationSearch || true
+          npm pkg set private=false || true
+          npm pkg set publishConfig.registry=https://npm.pkg.github.com || true
+
+          # Configure npm to use the built-in GITHUB_TOKEN for auth to the GitHub npm registry
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+
+          # publish to the GitHub Packages registry
+          npm publish --registry https://npm.pkg.github.com
+
