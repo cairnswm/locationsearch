@@ -23,8 +23,8 @@ jobs:
         # Avoid installing optional native packages (rollup native builds) which sometimes fail on npm in CI
         run: |
           echo "Disabling optional dependencies to avoid native rollup install issues"
-          export NPM_CONFIG_OPTIONAL=false
-          npm ci --no-optional
+          # Use the modern npm flag to omit optional dependencies
+          npm ci --omit=optional
 
       - name: Build
         run: npm run build
