@@ -20,7 +20,11 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        # Avoid installing optional native packages (rollup native builds) which sometimes fail on npm in CI
+        run: |
+          echo "Disabling optional dependencies to avoid native rollup install issues"
+          export NPM_CONFIG_OPTIONAL=false
+          npm ci --no-optional
 
       - name: Build
         run: npm run build
